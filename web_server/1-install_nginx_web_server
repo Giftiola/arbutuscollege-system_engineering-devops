@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Script that setup a nginx web server on our server.
 
-apt update -y && apt upgrade -y
-apt install nginx -y
+sudo apt -y update && apt -y upgrade
+sudo apt -y install nginx
+ufw allow 'Nginx HTTP'
+sudo service nginx restart
 
 echo "Holberton School" >/var/www/html/index.nginx-debian.html
 
-service nginx restart
+sudo service nginx restart
