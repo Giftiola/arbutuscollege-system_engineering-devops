@@ -2,7 +2,7 @@
 # Configures a server with HAProxy
 
 apt update -y && apt upgrade -y
-apt install haproxy -y
+apt install haproxy=2.2.\* -y
 
 echo "ENABLED=1" >>/etc/default/haproxy
 
