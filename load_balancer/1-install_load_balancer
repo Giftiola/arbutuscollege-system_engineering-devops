@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# Configures a server with HAProxy
+# shellcheck disable=SC2086
+# Information about server domains
 
-apt update -y && apt upgrade -y
-apt install haproxy -y
+check_domain() {
+    # Check for a valid domain
+    SUBDOMAINS=("www"  "lb-01" "web-01" "web-02")
+    if [ -z "$2" ]; then
+	for i in "${SUBDOMAINS[@]}"; do
+	    dig "$i.$1" | grep -A1 'ANSWER SECTION:' | tail -n1 | awk '{split($0, SUBDOMAIN, "."); print "The subdomain " SUBDOMAIN[1] " is a " $4 " record and points to " $5}'
+	done
+    else
+	dig "$2.$1" | grep -A1 'ANSWER SECTION:' | tail -n1 | awk '{split($0, SUBDOMAIN, "."); print "The subdomain " SUBDOMAIN[1] " is a " $4 " record and points to " $5}'
+    fi
+}
 
-echo "ENABLED=1" >>/etc/default/haproxy
-
-haproxy_cfg="\nbackend web-backend\n\tbalance roundrobin\n\tserver 6171-web-01 13.37.232.122:80 check\n\tserver 6171-web-02 15.237.58.178:80 check\n\nfrontend http\n\tbind *:80\n\tmode http\n\tdefault_backend web-backend"
-
-echo -e "$haproxy_cfg" >>/etc/haproxy/haproxy.cfg
-
-service haproxy restart
+check_domain "$1" "$2"
