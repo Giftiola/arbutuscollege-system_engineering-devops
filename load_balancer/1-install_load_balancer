@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Script that displays information about subdomains.
+# Configures a server with HAProxy
 
-domain=${1}
-subdomains=(${2:-www lb-01 web-01 web-02})
+apt update -y && apt upgrade -y
+apt install haproxy -y
 
-subdomain_data() {
-	dig "${1}.${2}" | awk -v subdomain="${1}" '/ANSWER SECTION:/ { getline; print "The subdomain", subdomain, "is a", $4, "record and points to", $5 }'
-}
+echo "ENABLED=1" >>/etc/default/haproxy
 
-for subdomain in "${subdomains[@]}"; do
-	subdomain_data "$subdomain" "$domain"
-done
+haproxy_cfg="\nbackend web-backend\n\tbalance roundrobin\n\tserver 6171-web-01 13.37.232.122:80 check\n\tserver 6171-web-02 15.237.58.178:80 check\n\nfrontend http\n\tbind *:80\n\tmode http\n\tdefault_backend web-backend"
+echo -e "$haproxy_cfg" >>/etc/haproxy/haproxy.cfg
+
+service haproxy restart
